@@ -1,0 +1,362 @@
+<mat-sidenav-container class="dashboard-container">
+  <!-- Sidebar -->
+  <mat-sidenav class="sidenav" mode="side" opened>
+    <div class="sidebar-header">
+      <h2>DODOLAN</h2>
+      <p>E-Commerce</p>
+    </div>
+
+    <mat-nav-list>
+      <a mat-list-item routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <mat-icon>dashboard</mat-icon>
+        <span class="menu-label">Dashboard</span>
+      </a>
+      <a mat-list-item routerLink="/orders" routerLinkActive="active">
+        <mat-icon>shopping_cart</mat-icon>
+        <span class="menu-label">Orders</span>
+      </a>
+      <a mat-list-item routerLink="/products" routerLinkActive="active">
+        <mat-icon>inventory_2</mat-icon>
+        <span class="menu-label">Products</span>
+      </a>
+    </mat-nav-list>
+
+  </mat-sidenav>
+
+  <!-- Main content -->
+  <mat-sidenav-content class="main-content">
+    <mat-toolbar color="primary" class="toolbar">
+      <div class="left-section">
+        <span class="title">Dashboard</span>
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search for something</mat-label>
+          <input matInput>
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <div class="right-section">
+        <mat-form-field appearance="outline" class="date-select-field">
+          <mat-select [(value)]="selectedDate">
+            <mat-select-trigger>This month</mat-select-trigger>
+            <mat-option *ngFor="let date of dates" [value]="date">{{ date }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <span class="divider"></span>
+
+        <mat-icon>settings</mat-icon>
+        <mat-icon>notifications</mat-icon>
+
+        <div class="admin" [matMenuTriggerFor]="adminMenu">
+          <img src="https://i.pravatar.cc/40" alt="Admin">
+          <div class="admin-info">
+            <span class="admin-name">Admin</span>
+            <span class="admin-role">admin</span>
+          </div>
+          <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
+        </div>
+
+        <!-- Admin Menu -->
+        <mat-menu #adminMenu="matMenu" class="admin-menu">
+          <div class="user-info">
+            <img src="https://i.pravatar.cc/40" alt="User">
+            <div>
+              <div class="user-name">Admin</div>
+              <div class="user-email">adminemail.com</div>
+            </div>
+          </div>
+          <mat-divider></mat-divider>
+          <button mat-menu-item><mat-icon>person</mat-icon><span>My Account</span></button>
+          <button mat-menu-item><mat-icon>tune</mat-icon><span>Preferences</span></button>
+          <button mat-menu-item><mat-icon>help</mat-icon><span>Help</span></button>
+          <mat-divider></mat-divider>
+          <button mat-menu-item><mat-icon>logout</mat-icon><span>Sign Out</span></button>
+        </mat-menu>
+      </div>
+    </mat-toolbar>
+
+    <!-- Main body -->
+    <div class="main-body">
+      <div class="today-date">
+        <h2>{{ currentDate }}</h2>
+      </div>
+
+      <div class="stat-cards">
+        <mat-card class="stat-card" *ngFor="let card of statCards">
+          <div class="card-header">
+            <mat-icon class="left-icon">{{ card.icon }}</mat-icon>
+            <mat-icon class="menu-icon">more_vert</mat-icon>
+          </div>
+          <div class="card-body">
+            <div class="card-title">{{ card.title }}</div>
+            <div class="card-amount">{{ card.value }}</div>
+            <div class="card-change">
+              <span class="percentage" [style.color]="card.color">{{ card.percent }}</span>
+              <span class="vs-text">vs Last Month</span>
+            </div>
+          </div>
+        </mat-card>
+      </div>
+
+<!-- 🔽 قسم الكروت الكبيرة -->
+<div class="wide-cards">
+
+  <mat-card class="wide-card summary-card">
+    <div class="card-header-flex">
+      <h3 class="card-header-title">Sales Summary</h3>
+
+      <div class="sales-controls">
+        <button mat-button (click)="updateChart('day')">Day</button>
+        <button mat-button (click)="updateChart('week')">Week</button>
+        <button mat-button (click)="updateChart('month')">Month</button>
+        <button mat-icon-button>
+          <mat-icon>more_vert</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="legend-row">
+      <div class="legend-item"><span class="dot blue"></span> <span class="label">Current Week</span></div>
+      <div class="legend-item"><span class="dot green"></span> <span class="label">Week 1</span></div>
+      <div class="legend-item"><span class="dot orange"></span> <span class="label">Week 2</span></div>
+      <div class="legend-item"><span class="dot red"></span> <span class="label">Week 3</span></div>
+      </div>
+
+      <div class="chart-wrapper">
+        <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" [type]="'line'">
+        </canvas>
+      </div>
+  </mat-card>
+
+
+  <!-- الكارت الأيمن: Sales By -->
+  <mat-card class="wide-card by-card">
+    <div class="card-header-flex">
+      <h3 class="card-header-title">Sales By</h3>
+      <button mat-icon-button>
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </div>
+
+    <div class="pie-content">
+      <!-- الرسم الدائري -->
+      <div class="pie-wrapper">
+        <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" [plugins]="[ChartDataLabels]"
+          [type]="'doughnut'">
+        </canvas>
+      </div>
+
+      <!-- البطاقات الجانبية المعدلة -->
+      <div class="category-details">
+        <div class="category-item" *ngFor="let cat of salesCategories" [style.borderLeft]="'4px solid ' + cat.color">
+          <div>
+            <div class="category-label">{{ cat.name }}</div>
+            <div class="category-amount">
+              <mat-icon class="category-icon">attach_money</mat-icon>
+              {{ cat.amount }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-card>
+
+
+</div>
+
+
+
+
+
+<!-- صف جديد للكروت السفلية -->
+<div class="wide-cards">
+
+
+<!-- Transaction List Card -->
+<mat-card class="wide-card transaction-card">
+  <div class="card-header-flex space-between full-width">
+
+    <!-- الجهة اليمنى: العنوان + الدروب داون -->
+    <div class="transaction-title-area">
+      <h3 class="card-header-title">Transaction List</h3>
+      <mat-form-field appearance="outline" class="dropdown-small">
+        <mat-select value="manage">
+          <mat-option value="manage">Manage All Orders</mat-option>
+          <mat-option value="recent">Recent Orders</mat-option>
+          <mat-option value="archived">Archived</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- الجهة اليسرى: Export / Share / More -->
+    <div class="transaction-actions">
+      <button mat-button>
+        <mat-icon>share</mat-icon>
+        Share
+      </button>
+
+      <button mat-button>
+        <mat-icon>file_download</mat-icon>
+        Export
+      </button>
+
+      <button mat-icon-button>
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- ✅ جدول المعاملات -->
+  <table class="custom-table">
+    <thead>
+      <tr>
+        <th>Order ID</th>
+        <th>Customer</th>
+        <th>Product</th>
+        <th>Date</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let order of orders">
+        <td>{{ order.id }}</td>
+        <td>{{ order.customer }}</td>
+        <td>{{ order.product }}</td>
+        <td>{{ order.date }}</td>
+        <td>{{ order.status }}</td>
+      </tr>
+    </tbody>
+  </table>
+</mat-card>
+
+
+  <!-- right card-->
+  <mat-card class="wide-card product-card">
+    <div class="card-header-flex">
+      <h3 class="card-header-title">Top Products</h3>
+      <button mat-icon-button><mat-icon>more_vert</mat-icon></button>
+    </div>
+
+    <!-- تكرار المنتجات -->
+    <div *ngFor="let product of topProducts" class="product-row">
+      <img [src]="product.image" alt="Product" class="product-image" />
+
+      <div class="product-info">
+        <div class="product-name">{{ product.name }}</div>
+        <div class="product-price">
+          <mat-icon class="money-icon">attach_money</mat-icon>
+          {{ product.price }}
+        </div>
+      </div>
+
+      <div class="product-stock-status">
+        <span class="stock-label" [ngClass]="product.status === 'in stock' ? 'green' : 'red'">
+          <span class="status-dot"
+            [ngStyle]="{ 'background-color': product.status === 'in stock' ? '#4CAF50' : '#F44336' }"></span>
+          {{ product.status }}
+        </span>
+        <div class="units-sold">Sold {{ product.sold }} units</div>
+      </div>
+    </div>
+  </mat-card>
+
+</div>
+
+
+
+
+<!-- 3 card -->
+<div class="wide-cards">
+
+
+  <!-- Transaction List Card -->
+  <mat-card class="wide-card transaction-card">
+
+    <div class="card-header-flex space-between full-width">
+
+      <!-- الجهة اليمنى: العنوان + الدروب داون -->
+      <div class="transaction-title-area">
+        <h3 class="card-header-title">Sales Funnel</h3>
+        <mat-form-field appearance="outline" class="dropdown-small">
+          <mat-select value="manage">
+            <mat-option value="manage">Peaple</mat-option>
+            <mat-option value="recent">Recent Orders</mat-option>
+            <mat-option value="archived">Archived</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <!-- الجهة اليسرى: Export / Share / More -->
+      <div class="transaction-actions">
+        <button mat-button>
+          Day
+        </button>
+
+        <button mat-button>
+          Week
+        </button>
+
+        <button mat-button>
+          Month
+        </button>
+
+        <button mat-icon-button>
+          <mat-icon>more_vert</mat-icon>
+        </button>
+      </div>
+      </div>
+
+      <div class="chart">
+        <canvas baseChart [data]="barChartData" [options]="barChartOptions" [type]="'bar'">
+        </canvas></div>
+
+  </mat-card>
+
+
+  <!-- right card-->
+  <mat-card class="wide-card product-card">
+
+    <div class="transaction-title-area">
+      <h3 class="card-header-title">Customer Segmentation</h3>
+      <mat-form-field appearance="outline" class="dropdown-small">
+        <mat-select value="manage">
+          <mat-option value="manage">Age</mat-option>
+          <mat-option value="recent">Recent Orders</mat-option>
+          <mat-option value="archived">Archived</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-icon-button>
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </div>
+
+    <div class="card-header-flex space-between">
+      <div class="gender-labels">
+        <div class="gender-item">
+          <span class="dot blue"></span> Men
+        </div>
+        <div class="gender-item">
+          <span class="dot red"></span> Women
+        </div>
+      </div>
+
+    </div>
+
+    <!-- الرسم البياني -->
+    <div class="chart-wrapper">
+      <canvas baseChart [data]="genderChartData" [options]="genderChartOptions" [type]="'bar'">
+      </canvas>
+      </div>
+
+  </mat-card>
+
+  </div>
+
+
+
+    </div>
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>
