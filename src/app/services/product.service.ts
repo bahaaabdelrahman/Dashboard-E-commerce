@@ -1,13 +1,16 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
+
+
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
 
-  private apiUrl = 'http://localhost:5000/api/products'; // عدّل هذا حسب سيرفرك
+  private apiUrl = 'http://localhost:3000/api/v1/products';
 
   constructor(private http: HttpClient) {}
 
@@ -15,9 +18,13 @@ export class ProductService {
     return this.http.post(this.apiUrl, productData);
   }
 
-  getAllProducts(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl);
+    getAllProducts(): Observable<any[]> {
+    const params = new HttpParams().set('status', '');
+    return this.http.get<{ data: any[] }>(this.apiUrl, { params }).pipe(
+      map(res => res.data)
+    );
   }
+
 
   deleteProduct(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
@@ -26,4 +33,14 @@ export class ProductService {
   updateProduct(id: string, updatedData: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}`, updatedData);
   }
+
+    getCategories(): Observable<any[]> {
+    return this.http.get<{ data: any[] }>('http://localhost:3000/api/v1/categories').pipe(
+      map(response => response.data)
+    );
+  }
+
 }
+
+
+

@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { Chart, ChartConfiguration } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { AuthService } from '../services/auth.service';
+
 
 
 @Component({
@@ -10,6 +13,10 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
   standalone: false
 })
 export class DashboardComponent implements OnInit {
+
+  constructor(private authService: AuthService, private router: Router) {}
+
+
 
   ChartDataLabels = ChartDataLabels;
 
@@ -71,7 +78,7 @@ export class DashboardComponent implements OnInit {
     }
   };
 
-  // البيانات الجانبية
+
   salesCategories = [
     {
       name: 'Electronics',
@@ -96,7 +103,6 @@ export class DashboardComponent implements OnInit {
   ];
 
 
-  // بيانات الجدول
 
 
   orders = [
@@ -302,6 +308,7 @@ export class DashboardComponent implements OnInit {
       };
     }
   }
+
 
 
 }

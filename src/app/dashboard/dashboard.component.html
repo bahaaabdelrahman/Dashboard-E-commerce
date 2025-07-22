@@ -71,7 +71,7 @@
           <button mat-menu-item><mat-icon>tune</mat-icon><span>Preferences</span></button>
           <button mat-menu-item><mat-icon>help</mat-icon><span>Help</span></button>
           <mat-divider></mat-divider>
-          <button mat-menu-item><mat-icon>logout</mat-icon><span>Sign Out</span></button>
+          <button mat-menu-item > <mat-icon>logout</mat-icon> <span>Sign Out</span> </button>
         </mat-menu>
       </div>
     </mat-toolbar>
@@ -99,7 +99,7 @@
         </mat-card>
       </div>
 
-<!-- 🔽 قسم الكروت الكبيرة -->
+
 <div class="wide-cards">
 
   <mat-card class="wide-card summary-card">
@@ -130,7 +130,7 @@
   </mat-card>
 
 
-  <!-- الكارت الأيمن: Sales By -->
+
   <mat-card class="wide-card by-card">
     <div class="card-header-flex">
       <h3 class="card-header-title">Sales By</h3>
@@ -140,14 +140,14 @@
     </div>
 
     <div class="pie-content">
-      <!-- الرسم الدائري -->
+
       <div class="pie-wrapper">
         <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" [plugins]="[ChartDataLabels]"
           [type]="'doughnut'">
         </canvas>
       </div>
 
-      <!-- البطاقات الجانبية المعدلة -->
+
       <div class="category-details">
         <div class="category-item" *ngFor="let cat of salesCategories" [style.borderLeft]="'4px solid ' + cat.color">
           <div>
@@ -169,7 +169,6 @@
 
 
 
-<!-- صف جديد للكروت السفلية -->
 <div class="wide-cards">
 
 
@@ -177,7 +176,7 @@
 <mat-card class="wide-card transaction-card">
   <div class="card-header-flex space-between full-width">
 
-    <!-- الجهة اليمنى: العنوان + الدروب داون -->
+
     <div class="transaction-title-area">
       <h3 class="card-header-title">Transaction List</h3>
       <mat-form-field appearance="outline" class="dropdown-small">
@@ -189,7 +188,7 @@
       </mat-form-field>
     </div>
 
-    <!-- الجهة اليسرى: Export / Share / More -->
+    <!--  Export / Share / More -->
     <div class="transaction-actions">
       <button mat-button>
         <mat-icon>share</mat-icon>
@@ -207,7 +206,7 @@
     </div>
   </div>
 
-  <!-- ✅ جدول المعاملات -->
+
   <table class="custom-table">
     <thead>
       <tr>
@@ -238,7 +237,7 @@
       <button mat-icon-button><mat-icon>more_vert</mat-icon></button>
     </div>
 
-    <!-- تكرار المنتجات -->
+
     <div *ngFor="let product of topProducts" class="product-row">
       <img [src]="product.image" alt="Product" class="product-image" />
 
@@ -275,7 +274,6 @@
 
     <div class="card-header-flex space-between full-width">
 
-      <!-- الجهة اليمنى: العنوان + الدروب داون -->
       <div class="transaction-title-area">
         <h3 class="card-header-title">Sales Funnel</h3>
         <mat-form-field appearance="outline" class="dropdown-small">
@@ -287,7 +285,7 @@
         </mat-form-field>
       </div>
 
-      <!-- الجهة اليسرى: Export / Share / More -->
+      <!--  Export / Share / More -->
       <div class="transaction-actions">
         <button mat-button>
           Day
@@ -344,7 +342,7 @@
 
     </div>
 
-    <!-- الرسم البياني -->
+
     <div class="chart-wrapper">
       <canvas baseChart [data]="genderChartData" [options]="genderChartOptions" [type]="'bar'">
       </canvas>

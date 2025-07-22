@@ -270,16 +270,13 @@ mat-icon {
 }
 
 
-/* الكروت العريضة بجانب بعض */
 .wide-cards {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  /* ثلثين + ثلث */
   gap: 16px;
   margin-top: 24px;
 }
 
-/* الكروت الكبيرة */
 .wide-card {
   padding: 16px;
   border-radius: 12px;
@@ -290,7 +287,7 @@ mat-icon {
   overflow: hidden;
 }
 
-/* عنوان الكارت */
+
 .card-header-title {
   margin: 0 0 12px;
   font-size: 18px;
@@ -390,7 +387,6 @@ mat-icon {
   display: inline-block;
 }
 
-/* الألوان */
 .dot.blue {
   background-color: #2196F3;
 }
@@ -638,136 +634,196 @@ mat-icon {
   height: 250px;
 }
 
-
+/* ************************************ */
 /* Media  */
-@media (max-width: 768px) {
-  .sidenav {
-    width: 100%;
-    position: fixed;
-    z-index: 1000;
-    height: 100vh;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-
-  .sidenav.open {
-    transform: translateX(0);
-  }
+@media (min-width: 500px) and (max-width: 1294px) {
 
   .main-content {
-    margin-left: 0;
+    margin-bottom: 40px;
   }
 
-  .toolbar {
+
+    .toolbar {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .left-section,
+    .right-section {
+      width: 100%;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .search-field,
+    .date-select-field {
+      width: 100%;
+    }
+
+
+  .sidenav {
+    width: 200px;
+  }
+
+    .wide-cards {
+      grid-template-columns: 1fr;
+    }
+
+    .wide-card {
+      width: 100%;
+    }
+
+      .transaction-card {
+    width: 100%;
+    padding: 12px;
+    box-sizing: border-box;
+  }
+
+  .custom-table {
+    width: 100%;
+    font-size: 12px;
+  }
+
+  .custom-table th, .custom-table td {
+    padding: 4px 8px;
+  }
+
+  .card-header-flex {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 8px;
   }
 
-  .left-section,
-  .right-section {
+  .transaction-title-area,
+  .transaction-actions {
     width: 100%;
+    display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
   }
 
-  .search-field,
-  .date-select-field {
-    width: 100%;
-  }
-
-  .stat-cards {
-    grid-template-columns: 1fr;
-  }
-
-  .wide-cards {
-    grid-template-columns: 1fr;
-  }
-
-  .product-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .transaction-actions,
-  .transaction-title-area {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .admin {
-    flex-direction: row;
-    gap: 8px;
-  }
-}
-
-
-@media (min-width: 768px) and (max-width: 1024px) {
-  .sidenav {
-    width: 240px;
-  }
-
-  .stat-cards {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  }
-
-  .wide-cards {
-    grid-template-columns: 1fr;
-  }
-
-  .search-field {
-    width: 100%;
-  }
-
-  .chart-wrapper {
-    height: 220px;
-  }
-
-  .pie-content {
-    flex-direction: column;
-    gap: 32px;
-  }
-}
-
-
-@media (max-width: 480px) {
-  .title {
-    font-size: 28px;
-  }
-
-  .stat-card .card-amount {
-    font-size: 22px;
-  }
-
-  .menu-label {
-    display: none;
-  }
-
-  .sidebar-header h2 {
-    font-size: 18px;
-  }
-
-  .admin-info {
-    display: none;
-  }
-
-  .admin img {
-    width: 28px;
-    height: 28px;
-  }
-
-  .product-row {
-    flex-direction: column;
-  }
-
-  .product-stock-status {
-    text-align: left;
-  }
-
   .dropdown-small {
     width: 100%;
+    margin-top: 6px;
+  }
+
+  .mat-icon {
+    font-size: 18px !important;
+  }
+
+  .mat-raised-button {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+    .transaction-card {
+      width: 100%;
+      padding: 12px;
+      box-sizing: border-box;
+    }
+
+    .custom-table {
+      width: 100%;
+      font-size: 12px;
+    }
+
+    .card-header-flex {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
+    }
+
+    .transaction-title-area,
+    .transaction-actions {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .dropdown-small {
+      width: 100%;
+      margin-top: 6px;
+    }
+
+
+    .mat-raised-button {
+      font-size: 11px;
+      padding: 4px 8px;
+    }
+
+
+    .chart {
+      width: 100%;
+      height: auto;
+    }
+
+    .chart canvas {
+      width: 100% !important;
+      height: 300px !important;
+      display: block;
+    }
+
+    .transaction-title-area,
+    .transaction-actions {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .card-header-title {
+      margin: 0;
+      padding: 0;
+    }
+
+}
+
+
+
+@media (max-width: 768px) {
+  .sidenav {
+    width: 100px;
+  }
+
+  .menu-icon-button {
+    display: inline-flex;
+  }
+
+  .wide-cards {
+    grid-template-columns: 1fr !important;
+  }
+
+  .chart canvas {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+        .toolbar {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+
+        .left-section,
+        .right-section {
+          width: 100%;
+          justify-content: space-between;
+          flex-wrap: wrap;
+        }
+
+        .search-field,
+        .date-select-field {
+          width: 100%;
+        }
+
+  body {
+    overflow-x: hidden;
   }
 }
+
+
+
+
 

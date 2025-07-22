@@ -1,11 +1,12 @@
+<!-- Main Sidenav Container -->
 <mat-sidenav-container class="dashboard-container">
-  <!-- Sidebar -->
+
+  <!-- Sidebar Navigation -->
   <mat-sidenav class="sidenav" mode="side" opened>
     <div class="sidebar-header">
       <h2>DODOLAN</h2>
       <p>E-Commerce</p>
     </div>
-
     <mat-nav-list>
       <mat-list-item routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <mat-icon>dashboard</mat-icon>
@@ -22,8 +23,10 @@
     </mat-nav-list>
   </mat-sidenav>
 
-  <!-- Main content -->
+  <!-- Main Content Area -->
   <mat-sidenav-content class="main-content">
+
+    <!-- Top Toolbar -->
     <mat-toolbar color="primary" class="toolbar">
       <div class="left-section">
         <span class="title">Product</span>
@@ -33,11 +36,10 @@
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
       </div>
-
       <div class="right-section">
+        <span class="divider"></span>
         <mat-icon>settings</mat-icon>
         <mat-icon>notifications</mat-icon>
-
         <div class="admin" [matMenuTriggerFor]="adminMenu">
           <img src="https://i.pravatar.cc/40" alt="Admin">
           <div class="admin-info">
@@ -46,8 +48,6 @@
           </div>
           <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
         </div>
-
-        <!-- Admin Menu -->
         <mat-menu #adminMenu="matMenu" class="admin-menu">
           <div class="user-info">
             <img src="https://i.pravatar.cc/40" alt="User">
@@ -66,53 +66,66 @@
       </div>
     </mat-toolbar>
 
-    <!-- Main body -->
+    <!-- Main Content Body -->
     <div class="main-body">
+
+      <!-- Page Header -->
       <div class="today-date">
         <h2>{{ currentDate }}</h2>
         <p>Product Overview</p>
       </div>
 
-      <!-- عرض المنتجات -->
+      <!-- Products Display Area (Hides when adding a new product) -->
       <div *ngIf="!isAddingNew">
         <mat-card class="full-width-card">
 
+          <!-- Filter Bar -->
           <div class="filter-bar">
             <div class="filter-group">
               <label>Search Product</label>
               <mat-form-field appearance="outline">
-                <input matInput placeholder="Search">
+                <input matInput placeholder="Search" [formControl]="searchControl">
                 <mat-icon matSuffix>search</mat-icon>
               </mat-form-field>
             </div>
-
             <div class="filter-group">
               <label>Category</label>
               <mat-form-field appearance="outline">
-                <mat-select>
+                <mat-select [formControl]="categoryControl">
                   <mat-option value="all">All Product</mat-option>
-                  <mat-option value="electronics">Electronics</mat-option>
-                  <mat-option value="fashion">Fashion</mat-option>
+                  <mat-option *ngFor="let cat of categories" [value]="cat._id">
+                    {{ cat.name }}
+                  </mat-option>
                 </mat-select>
               </mat-form-field>
             </div>
-
             <div class="filter-group">
-              <label>Visibility</label>
-              <mat-form-field appearance="outline">
-                <input matInput placeholder="Grid">
+              <mat-form-field appearance="outline" class="custom-select-field">
+                <mat-label>View As</mat-label>
+                <mat-select [(ngModel)]="displayMode" disableRipple panelClass="custom-view-as-panel">
+                  <mat-option value="list">
+                    <mat-icon>view_list</mat-icon>
+                    List View
+                  </mat-option>
+                  <mat-option value="grid">
+                    <mat-icon>grid_view</mat-icon>
+                    Grid View
+                  </mat-option>
+                </mat-select>
                 <mat-icon matSuffix>format_list_bulleted</mat-icon>
               </mat-form-field>
             </div>
-
             <div class="filter-group">
-              <label>Piller</label>
               <mat-form-field appearance="outline">
-                <input matInput placeholder="Status">
-                <mat-icon matSuffix>linear_scale</mat-icon>
+                <mat-label>Status</mat-label>
+                <mat-select [formControl]="statusControl">
+                  <mat-option value="all">All Statuses</mat-option>
+                  <mat-option *ngFor="let status of statuses" [value]="status">
+                    {{ status | titlecase }}
+                  </mat-option>
+                </mat-select>
               </mat-form-field>
             </div>
-
             <div class="filter-button">
               <button mat-flat-button class="custom-add-button" (click)="onAddNew()">
                 <mat-icon>add</mat-icon>
@@ -121,33 +134,33 @@
             </div>
           </div>
 
-          <!-- جدول المنتجات -->
-          <table class="custom-table">
+          <!-- List View (Table) -->
+          <table class="custom-table" *ngIf="displayMode === 'list'">
             <thead>
               <tr>
                 <th><mat-checkbox></mat-checkbox> Product</th>
                 <th>Photo</th>
                 <th>Category</th>
                 <th>Brand</th>
-                <th>Model</th>
-                <th>Size</th>
-                <th>Inventory</th>
+                <th>SKU</th>
                 <th>Status</th>
+                <th>Quantity</th>
                 <th>Visibility</th>
+                <th>Price</th>
                 <th class="h-action">Action</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let product of products">
+              <tr *ngFor="let product of filteredProducts">
                 <td><mat-checkbox></mat-checkbox> {{ product.name }}</td>
-                <td><img [src]="product.image" width="40" height="40" /></td>
-                <td>{{ product.category }}</td>
-                <td>{{ product.brand }}</td>
-                <td>{{ product.model || '-' }}</td>
-                <td>{{ product.size }}</td>
-                <td>{{ product.quantity }}</td>
+                <td><img [src]="getProductImage(product)" alt="Product" width="50" /></td>
+                <td>{{ getCategoryName(product.category) }}</td>
+                <td>{{ product.brand || '-' }}</td>
+                <td>{{ product.sku }}</td>
                 <td>{{ product.status }}</td>
+                <td>{{ product.inventory?.quantity }}</td>
                 <td>{{ product.visibility }}</td>
+                <td>${{ product.pricing?.price }}</td>
                 <td class="h-action">
                   <button mat-icon-button color="primary" (click)="onEdit(product)">
                     <mat-icon>edit</mat-icon>
@@ -160,10 +173,29 @@
             </tbody>
           </table>
 
+          <!-- Grid View (Cards) -->
+          <div class="product-grid" *ngIf="displayMode === 'grid'">
+            <mat-card class="product-card" *ngFor="let product of filteredProducts">
+              <img mat-card-image [src]="getProductImage(product)" alt="{{ product.name }}">
+              <mat-card-content>
+                <h3 class="product-name">{{ product.name }}</h3>
+                <p class="product-category">{{ getCategoryName(product.category) }}</p>
+                <p class="product-price">${{ product.pricing?.price }}</p>
+              </mat-card-content>
+              <mat-card-actions align="end">
+                <button mat-icon-button color="primary" (click)="onEdit(product)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="onDelete(product._id)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
         </mat-card>
       </div>
 
-      <!-- نموذج الإضافة -->
+      <!-- Add/Edit Product Form Wrapper -->
       <div *ngIf="isAddingNew" class="add-new-wrapper">
         <mat-card class="add-new-card">
           <div class="card-header">
@@ -173,117 +205,104 @@
             </button>
           </div>
 
+          <!-- Product Form -->
           <form class="add-product-form" [formGroup]="productForm" (ngSubmit)="onSubmit()">
-            <!-- صورة المنتج -->
             <div class="image-upload">
-              <label for="fileInput">
-                <div class="image-preview-wrapper" *ngIf="previewUrl">
-                  <img [src]="previewUrl" class="preview-img" />
-                  <button class="remove-btn" type="button" (click)="removeImage()">
-                    <mat-icon>close</mat-icon>
-                  </button>
-                </div>
-                <div *ngIf="!previewUrl" class="placeholder">Click to upload image</div>
-              </label>
-              <input type="file" id="fileInput" hidden (change)="onFileSelected($event)" />
-            </div>
-
-            <!-- صف الحقول الأول -->
-            <div class="form-row">
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Product Name</mat-label>
-                <input matInput formControlName="name">
+              <mat-form-field appearance="outline" class="form-field full-width">
+                <mat-label>Image URL</mat-label>
+                <input matInput placeholder="https://example.com/image.jpg" formControlName="imageUrl"
+                  (input)="updatePreview()" />
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="form-field">
+              <mat-form-field appearance="outline" class="form-field full-width">
+                <mat-label>Public ID</mat-label>
+                <input matInput placeholder="public_id_example" formControlName="imagePublicId" />
+              </mat-form-field>
+              <div class="image-preview-wrapper" *ngIf="previewUrl">
+                <img [src]="previewUrl" alt="Product" class="preview-img" />
+                <button class="remove-btn" type="button" (click)="removeImage()">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <div *ngIf="!previewUrl" class="placeholder">
+                Enter image URL to preview
+              </div>
+            </div>
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field" hideRequiredMarker>
+                <mat-label>Product Name</mat-label>
+                <input matInput placeholder="Enter name" formControlName="name">
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="form-field" hideRequiredMarker>
                 <mat-label>Category</mat-label>
                 <mat-select formControlName="category">
-                  <mat-option value="electronics">Electronics</mat-option>
-                  <mat-option value="fashion">Fashion</mat-option>
+                  <mat-option *ngFor="let cat of categories" [value]="cat._id">
+                    {{ cat.name }}
+                  </mat-option>
                 </mat-select>
               </mat-form-field>
             </div>
-
-            <!-- صف الحقول الثاني -->
             <div class="form-row">
               <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Brand</mat-label>
-                <input matInput formControlName="brand">
+                <mat-label>SKU</mat-label>
+                <input matInput placeholder="Enter SKU" formControlName="sku">
               </mat-form-field>
-
               <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Status</mat-label>
-                <mat-select formControlName="status">
-                  <mat-option value="available">Available</mat-option>
-                  <mat-option value="out-of-stock">Out of Stock</mat-option>
-                </mat-select>
+                <mat-label>Brand</mat-label>
+                <input matInput placeholder="Enter brand" formControlName="brand">
               </mat-form-field>
             </div>
-
-            <!-- صف الحقول الثالث -->
             <div class="form-row">
               <mat-form-field appearance="outline" class="form-field">
                 <mat-label>Price</mat-label>
-                <input matInput type="number" formControlName="price">
+                <input matInput type="number" placeholder="Enter price" formControlName="price">
               </mat-form-field>
-
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Compare Price</mat-label>
+                <input matInput type="number" placeholder="Compare price" formControlName="comparePrice">
+              </mat-form-field>
+            </div>
+            <div class="form-row">
               <mat-form-field appearance="outline" class="form-field">
                 <mat-label>Quantity</mat-label>
                 <input matInput type="number" formControlName="quantity">
               </mat-form-field>
-            </div>
-
-            <!-- صف الحقول الرابع -->
-            <div class="form-row">
               <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Discount</mat-label>
-                <input matInput type="number" formControlName="discount">
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Add Size</mat-label>
-                <input matInput formControlName="size">
-              </mat-form-field>
-            </div>
-
-            <!-- صف الحقول الخامس -->
-            <div class="form-row">
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Gender</mat-label>
-                <mat-select formControlName="gender">
-                  <mat-option value="male">Male</mat-option>
-                  <mat-option value="female">Female</mat-option>
-                  <mat-option value="unisex">Unisex</mat-option>
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="status">
+                  <mat-option value="active">Active</mat-option>
+                  <mat-option value="draft">Draft</mat-option>
                 </mat-select>
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Visibility</mat-label>
-                <mat-select formControlName="visibility">
-                  <mat-option value="published">Published</mat-option>
-                  <mat-option value="hidden">Hidden</mat-option>
-                  <mat-option value="scheduled">Scheduled</mat-option>
-                </mat-select>
-              </mat-form-field>
+              <mat-checkbox formControlName="isFeatured">Is Featured</mat-checkbox>
             </div>
-
-            <!-- تاريخ الإضافة -->
-            <div class="form-row">
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Date</mat-label>
-                <input matInput [matDatepicker]="datePicker" formControlName="date">
-                <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
-                <mat-datepicker #datePicker></mat-datepicker>
-              </mat-form-field>
-            </div>
-
-            <!-- وصف المنتج -->
+            <mat-form-field appearance="outline" class="form-field full-width">
+              <mat-label>Short Description</mat-label>
+              <textarea matInput rows="2" placeholder="Short description" formControlName="shortDescription"></textarea>
+            </mat-form-field>
             <mat-form-field appearance="outline" class="form-field full-width">
               <mat-label>Description</mat-label>
-              <textarea matInput rows="4" formControlName="description"></textarea>
+              <textarea matInput rows="4" placeholder="Full description" formControlName="description"></textarea>
             </mat-form-field>
-
-            <!-- أزرار الإرسال -->
+            <div formGroupName="specifications" class="form-row">
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Processor</mat-label>
+                <input matInput placeholder="Intel Core i9" formControlName="processor">
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Graphics</mat-label>
+                <input matInput placeholder="NVIDIA RTX 4080" formControlName="graphics">
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Weight</mat-label>
+                <input matInput placeholder="2.8kg" formControlName="weight">
+              </mat-form-field>
+            </div>
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field full-width">
+                <mat-label>Variants (e.g. RAM: 16GB,32GB)</mat-label>
+                <input matInput placeholder="RAM: 16GB,32GB" formControlName="variants">
+              </mat-form-field>
+            </div>
             <div class="form-actions">
               <button mat-flat-button color="primary" type="submit">Save Product</button>
               <button mat-stroked-button type="button" (click)="cancelAdd()">Cancel</button>
@@ -293,6 +312,7 @@
       </div>
     </div>
 
+    <!-- Router Outlet for other pages -->
     <router-outlet></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>

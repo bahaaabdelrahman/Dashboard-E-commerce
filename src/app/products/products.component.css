@@ -397,3 +397,249 @@ mat-checkbox {
 .h-action button {
   margin-right: 4px;
 }
+
+
+/* grid view */
+
+.product-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.product-card {
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-card img {
+  height: 180px;
+  object-fit: cover;
+}
+
+.product-card .product-name {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.product-card .product-category {
+  font-size: 0.85rem;
+  color: #777;
+  margin-bottom: 12px;
+}
+
+.product-card .product-price {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #3f51b5;
+}
+
+.product-card mat-card-actions {
+  margin-top: auto;
+}
+
+
+.view-toggle {
+  margin-right: 16px;
+  align-self: center;
+}
+
+
+/* ************************************ */
+/* Media  */
+@media (min-width: 500px) and (max-width: 1294px) {
+
+  .main-content {
+    margin-bottom: 40px;
+  }
+
+
+  .toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .left-section,
+  .right-section {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .search-field,
+  .date-select-field {
+    width: 100%;
+  }
+
+
+  .sidenav {
+    width: 200px;
+  }
+
+  .wide-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .wide-card {
+    width: 100%;
+  }
+
+  .transaction-card {
+    width: 100%;
+    padding: 12px;
+    box-sizing: border-box;
+  }
+
+  .custom-table {
+    width: 100%;
+    font-size: 12px;
+  }
+
+  .custom-table th,
+  .custom-table td {
+    padding: 4px 8px;
+  }
+
+  .card-header-flex {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .transaction-title-area,
+  .transaction-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .dropdown-small {
+    width: 100%;
+    margin-top: 6px;
+  }
+
+  .mat-icon {
+    font-size: 18px !important;
+  }
+
+  .mat-raised-button {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  .transaction-card {
+    width: 100%;
+    padding: 12px;
+    box-sizing: border-box;
+  }
+
+  .custom-table {
+    width: 100%;
+    font-size: 12px;
+  }
+
+  .card-header-flex {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .transaction-title-area,
+  .transaction-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .dropdown-small {
+    width: 100%;
+    margin-top: 6px;
+  }
+
+
+  .mat-raised-button {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+
+  .chart {
+    width: 100%;
+    height: auto;
+  }
+
+  .chart canvas {
+    width: 100% !important;
+    height: 300px !important;
+    display: block;
+  }
+
+  .transaction-title-area,
+  .transaction-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .card-header-title {
+    margin: 0;
+    padding: 0;
+  }
+
+}
+
+
+
+@media (max-width: 768px) {
+  .sidenav {
+    width: 100px;
+  }
+
+  .menu-icon-button {
+    display: inline-flex;
+  }
+
+  .wide-cards {
+    grid-template-columns: 1fr !important;
+  }
+
+  .chart canvas {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .left-section,
+  .right-section {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .search-field,
+  .date-select-field {
+    width: 100%;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+}
+
+
