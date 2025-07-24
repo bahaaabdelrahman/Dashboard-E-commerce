@@ -4,6 +4,10 @@ import { ProductService } from '../services/product.service';
 import { Chart } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { combineLatest, forkJoin, startWith } from 'rxjs';
+import { CategoryService } from '../services/category.service';
+
+
+
 
 
 
@@ -41,7 +45,7 @@ export class ProductsComponent implements OnInit {
     { icon: 'inventory_2', title: 'Total Visitors', value: '842' }
   ];
 
-  constructor(private fb: FormBuilder, private productService: ProductService) {}
+  constructor(private fb: FormBuilder, private productService: ProductService, private categoryService: CategoryService) {}
 
   ngOnInit(): void {
     Chart.register(ChartDataLabels);
@@ -103,48 +107,56 @@ export class ProductsComponent implements OnInit {
 
 
 
-loadInitialData(): void {
+  loadInitialData(): void {
   forkJoin({
     products: this.productService.getAllProducts(),
-    categories: this.productService.getCategories()
+    categories: this.categoryService.getCategories()
   }).subscribe({
-    next: (data) => {
+    next: (responses) => {
+      const categoriesArray = Array.isArray(responses.categories) ? responses.categories : (responses.categories as any).data;
+      this.categories = Array.isArray(categoriesArray) ? categoriesArray : [];
 
-      this.products = data.products;
-      console.log('✅ Products loaded from server:', this.products);
+      const productsArray = Array.isArray(responses.products) ? responses.products : (responses.products as any).data;
+      const safeProductsArray = Array.isArray(productsArray) ? productsArray : [];
+
+      this.products = safeProductsArray.map((product: any) => {
+        return {
+          ...product,
+          categoryName: product.category?.name || 'Uncategorized'
+        };
+      });
+
       this.filteredProducts = this.products;
-
-      if (data.categories && data.categories.length > 0) {
-        this.categories = data.categories;
-        console.log('✅ Categories loaded from SERVER:', this.categories);
-      } else {
-
-        console.warn('⚠️ Server returned empty categories. Using hardcoded fallback list.');
-        this.categories = [
-          { _id: '64efcfba1c593e456c102f9b', name: 'Electronics' },
-          { _id: '64efcfba1c593e456c102f9c', name: 'Fashion' },
-          { _id: '64efcfba1c593e456c102f9d', name: 'Home Appliances' },
-          { _id: '64efcfba1c593e456c102f9e', name: 'Books' }
-        ];
-      }
-
     },
     error: (err) => {
-      console.error(' Error loading initial data:', err);
+      console.error('Error loading initial data:', err);
+      this.categories = [];
+      this.products = [];
+      this.filteredProducts = [];
     }
   });
 }
 
 
 
-    loadProducts(): void {
-    this.productService.getAllProducts().subscribe({
-      next: (products) => {
-        this.products = products;
-      },
-      error: (err) => console.error(' Error reloading products:', err)
-    });
-  }
+  loadProducts(): void {
+  this.productService.getAllProducts().subscribe({
+    next: (response) => {
+      const productsArray = Array.isArray(response) ? response : (response as any).data;
+      const safeProductsArray = Array.isArray(productsArray) ? productsArray : [];
+
+      this.products = safeProductsArray.map((product: any) => {
+        return {
+          ...product,
+          categoryName: product.category?.name || 'Uncategorized'
+        };
+      });
+
+      this.filteredProducts = this.products;
+    },
+    error: (err) => console.error('Error reloading products:', err)
+  });
+}
 
 
 
@@ -304,16 +316,22 @@ onEdit(product: any): void {
     return product.images?.[0]?.url || 'https://via.placeholder.com/50';
   }
 
-  getCategoryName(catId: string): string {
+  getCategoryName(catId: any): string {
   if (!catId) {
     return 'Uncategorized';
   }
+
+  const id = typeof catId === 'string' ? catId : catId._id;
+
   if (!this.categories || this.categories.length === 0) {
     return 'Loading...';
   }
-  const category = this.categories.find(c => c._id === catId);
+
+  const category = this.categories.find(c => c._id?.toString() === id?.toString());
   return category ? category.name : 'Unknown category';
 }
+
+
 
 
   setupFiltering(): void {

@@ -34,11 +34,6 @@ export class ProductService {
     return this.http.put(`${this.apiUrl}/${id}`, updatedData);
   }
 
-    getCategories(): Observable<any[]> {
-    return this.http.get<{ data: any[] }>('http://localhost:3000/api/v1/categories').pipe(
-      map(response => response.data)
-    );
-  }
 
 }
 

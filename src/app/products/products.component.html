@@ -20,6 +20,10 @@
         <mat-icon>inventory_2</mat-icon>
         <span class="menu-label">Products</span>
       </mat-list-item>
+      <mat-list-item routerLink="/category" routerLinkActive="active">
+        <mat-icon>inventory_2</mat-icon>
+        <span class="menu-label">Category</span>
+      </mat-list-item>
     </mat-nav-list>
   </mat-sidenav>
 
@@ -154,7 +158,7 @@
               <tr *ngFor="let product of filteredProducts">
                 <td><mat-checkbox></mat-checkbox> {{ product.name }}</td>
                 <td><img [src]="getProductImage(product)" alt="Product" width="50" /></td>
-                <td>{{ getCategoryName(product.category) }}</td>
+                <td>{{ product.categoryName }}</td>
                 <td>{{ product.brand || '-' }}</td>
                 <td>{{ product.sku }}</td>
                 <td>{{ product.status }}</td>

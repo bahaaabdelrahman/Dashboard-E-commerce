@@ -26,6 +26,7 @@ import { HTTP_INTERCEPTORS, HttpClientModule, HttpInterceptor } from '@angular/c
 import { ReactiveFormsModule } from '@angular/forms';
 import { LoginComponent } from './pages/login/login.component';
 import { AuthInterceptor } from './auth.interceptor';
+import { CategoryComponent } from './category/category.component';
 
 
 
@@ -41,7 +42,8 @@ import { AuthInterceptor } from './auth.interceptor';
     DashboardComponent,
     OrdersComponent,
     ProductsComponent,
-    LoginComponent
+    LoginComponent,
+    CategoryComponent
   ],
   imports: [
     BrowserModule,

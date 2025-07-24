@@ -5,6 +5,7 @@ import { OrdersComponent } from './orders/orders.component';
 import { ProductsComponent } from './products/products.component';
 import { LoginComponent } from './pages/login/login.component';
 import { AuthGuard } from './guards/auth.guard';
+import { CategoryComponent } from './category/category.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -15,7 +16,8 @@ const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },
       { path: 'orders', component: OrdersComponent },
-      { path: 'products', component: ProductsComponent }
+      { path: 'products', component: ProductsComponent },
+      { path: 'category', component: CategoryComponent}
     ]
   },
   { path: '**', redirectTo: 'login' }
