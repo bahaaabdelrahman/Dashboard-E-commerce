@@ -1,15 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators, FormArray } from '@angular/forms';
 import { ProductService } from '../services/product.service';
+import { CategoryService } from '../services/category.service';
+import { forkJoin, combineLatest, startWith } from 'rxjs';
 import { Chart } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-import { combineLatest, forkJoin, startWith } from 'rxjs';
-import { CategoryService } from '../services/category.service';
-
-
-
-
-
 
 @Component({
   selector: 'app-products',
@@ -23,27 +18,18 @@ export class ProductsComponent implements OnInit {
   previewUrl: string | null = null;
   currentDate: string = '';
   products: any[] = [];
+  filteredProducts: any[] = [];
   editingProductId: string | null = null;
   editingProduct: any | null = null;
-
-  filteredProducts: any[] = [];
-
   searchControl = new FormControl('');
   categoryControl = new FormControl('all');
   statusControl = new FormControl('all');
-
-  statuses: string[] = ['active', 'draft'];
-
   categories: any[] = [];
-
+  statuses: string[] = ['active', 'draft'];
   displayMode: 'list' | 'grid' = 'list';
 
+  categoryProductCounts: Map<string, number> = new Map();
 
-  statCards = [
-    { icon: 'military_tech', title: 'All Orders', value: '$12,567' },
-    { icon: 'shopping_cart', title: 'Need to Pay', value: '1,235' },
-    { icon: 'inventory_2', title: 'Total Visitors', value: '842' }
-  ];
 
   constructor(private fb: FormBuilder, private productService: ProductService, private categoryService: CategoryService) {}
 
@@ -57,10 +43,7 @@ export class ProductsComponent implements OnInit {
 
   setCurrentDate(): void {
     const today = new Date();
-    const day = today.getDate();
-    const month = today.toLocaleString('en-US', { month: 'long' });
-    const year = today.getFullYear();
-    this.currentDate = `Today, ${day} ${month} ${year}`;
+    this.currentDate = `Today, ${today.getDate()} ${today.toLocaleString('en-US', { month: 'long' })} ${today.getFullYear()}`;
   }
 
   initForm(): void {
@@ -74,142 +57,113 @@ export class ProductsComponent implements OnInit {
       comparePrice: [0, Validators.min(0)],
       category: ['', Validators.required],
       quantity: [0, Validators.required],
-      isFeatured: [false],
-      status: ['draft', Validators.required],
+      isFeatured: [true],
+      status: ['active', Validators.required],
       variants: [''],
-      imageUrl: ['', Validators.required],
-      imagePublicId: ['', Validators.required],
-      specifications: this.fb.group({
-        processor: [''],
-        graphics: [''],
-        weight: ['']
-      })
+      images: this.fb.array([]),
+      specifications: this.fb.array([])
     });
   }
 
-  updatePreview(): void {
-    const url = this.productForm.get('imageUrl')?.value;
-    this.previewUrl = url;
+
+  get images(): FormArray {
+    return this.productForm.get('images') as FormArray;
   }
 
-  removeImage(): void {
-    this.productForm.get('imageUrl')?.setValue('');
-    this.previewUrl = null;
+  addImageField(): void {
+    this.images.push(this.createImageGroup());
+  }
+
+  createImageGroup(url: string = '', publicId: string | null = null): FormGroup {
+    return this.fb.group({
+      url: [url, Validators.required],
+      publicId: [publicId, Validators.required]
+    });
+  }
+
+  removeImageField(index: number): void {
+    this.images.removeAt(index);
+  }
+
+
+  get specifications(): FormArray {
+    return this.productForm.get('specifications') as FormArray;
+  }
+
+  createSpecificationGroup(key: string = '', value: string = ''): FormGroup {
+    return this.fb.group({
+      key: [key, Validators.required],
+      value: [value, Validators.required]
+    });
+  }
+
+  addSpecificationField(): void {
+    this.specifications.push(this.createSpecificationGroup());
+  }
+
+  removeSpecificationField(index: number): void {
+    this.specifications.removeAt(index);
   }
 
   onAddNew(): void {
     this.isAddingNew = true;
     this.editingProductId = null;
-    this.productForm.reset();
+    this.editingProduct = null;
+    this.productForm.reset({ status: 'draft', isFeatured: false, price: 0, comparePrice: 0, quantity: 0 });
     this.previewUrl = null;
+    this.images.clear();
+    this.specifications.clear();
+    this.addImageField();
   }
-
-
-
 
   loadInitialData(): void {
-  forkJoin({
-    products: this.productService.getAllProducts(),
-    categories: this.categoryService.getCategories()
-  }).subscribe({
-    next: (responses) => {
-      const categoriesArray = Array.isArray(responses.categories) ? responses.categories : (responses.categories as any).data;
-      this.categories = Array.isArray(categoriesArray) ? categoriesArray : [];
-
-      const productsArray = Array.isArray(responses.products) ? responses.products : (responses.products as any).data;
-      const safeProductsArray = Array.isArray(productsArray) ? productsArray : [];
-
-      this.products = safeProductsArray.map((product: any) => {
-        return {
-          ...product,
-          categoryName: product.category?.name || 'Uncategorized'
-        };
-      });
-
+    forkJoin({
+      products: this.productService.getAllProducts(),
+      categories: this.categoryService.getCategories()
+    }).subscribe(({ products, categories }) => {
+      this.categories = Array.isArray(categories) ? categories : categories.data || [];
+      const productArray: any[] = Array.isArray(products) ? products : (products as any).data || [];
+      this.products = productArray.map((p: any) => ({...p, categoryName: p.category?.name || 'Uncategorized'}));
       this.filteredProducts = this.products;
-    },
-    error: (err) => {
-      console.error('Error loading initial data:', err);
-      this.categories = [];
-      this.products = [];
-      this.filteredProducts = [];
-    }
-  });
-}
-
-
+      this.calculateCategoryCounts();
+    });
+  }
 
   loadProducts(): void {
-  this.productService.getAllProducts().subscribe({
-    next: (response) => {
-      const productsArray = Array.isArray(response) ? response : (response as any).data;
-      const safeProductsArray = Array.isArray(productsArray) ? productsArray : [];
-
-      this.products = safeProductsArray.map((product: any) => {
-        return {
-          ...product,
-          categoryName: product.category?.name || 'Uncategorized'
-        };
-      });
-
-      this.filteredProducts = this.products;
-    },
-    error: (err) => console.error('Error reloading products:', err)
-  });
-}
-
-
-
-
-onSubmit(): void {
-  if (this.productForm.invalid) {
-    console.error(' Form is invalid');
-    return;
+    this.productService.getAllProducts().subscribe(response => {
+      const productArray: any[] = Array.isArray(response) ? response : (response as any).data || [];
+      this.products = productArray.map((p: any) => ({...p, categoryName: p.category?.name || 'Uncategorized'}));
+      this.applyFilters(this.searchControl.value || '', this.categoryControl.value || 'all', this.statusControl.value || 'all');
+      this.calculateCategoryCounts();
+    });
   }
 
-  const formData = this.productForm.value;
+  onSubmit(): void {
+    if (this.productForm.invalid) {
+      alert('Please fill all required fields, including Image URLs and Public IDs.');
+      return;
+    }
 
-  if (formData.comparePrice <= formData.price) {
-    alert(' Compare price must be greater than price.');
-    return;
-  }
+    const formData = this.productForm.value;
 
-  let finalData;
+    if (formData.comparePrice !== 0 && formData.comparePrice <= formData.price) {
+      alert('Compare price must be greater than price.');
+      return;
+    }
 
-  if (this.editingProductId && this.editingProduct) {
-    finalData = {
-      ...this.editingProduct,
-      ...formData,
+    const specificationsObject = formData.specifications.reduce((acc: any, spec: any) => {
+      if (spec.key) {
+        acc[spec.key] = spec.value;
+      }
+      return acc;
+    }, {});
 
-      pricing: {
-        ...this.editingProduct.pricing,
-        price: formData.price,
-        comparePrice: formData.comparePrice
-      },
-      inventory: {
-        ...this.editingProduct.inventory,
-        quantity: formData.quantity
-      },
-      specifications: {
-        ...this.editingProduct.specifications,
-        ...formData.specifications
-      },
-      images: [
-        {
-          url: formData.imageUrl,
-          publicId: formData.imagePublicId
-        }
-      ],
-      variants: this.parseVariants(formData.variants)
-    };
-
-  } else {
-    finalData = {
+    const baseProduct = {
       name: formData.name,
-      description: formData.description,
       shortDescription: formData.shortDescription,
+      description: formData.description,
       sku: formData.sku,
-      brand: formData.brand,
+      brand: formData.brand || '',
       category: formData.category,
       status: formData.status,
       isFeatured: formData.isFeatured,
@@ -220,34 +174,68 @@ onSubmit(): void {
       inventory: {
         quantity: formData.quantity
       },
-      specifications: formData.specifications,
-      images: [
-        {
-          url: formData.imageUrl,
-          publicId: formData.imagePublicId
-        }
-      ],
+      specifications: specificationsObject,
+      images: formData.images,
       variants: this.parseVariants(formData.variants)
     };
+
+    const finalData = this.editingProductId && this.editingProduct
+      ? { ...this.editingProduct, ...baseProduct }
+      : baseProduct;
+
+    const request = this.editingProductId
+      ? this.productService.updateProduct(this.editingProductId, finalData)
+      : this.productService.addProduct(finalData);
+
+    request.subscribe({
+      next: () => {
+        this.cancelAdd();
+        this.loadProducts();
+      },
+      error: (err) => {
+        console.error('Error saving product:', err);
+        alert('An error occurred while saving the product. Please check the console for details.');
+      }
+    });
   }
 
-  console.log(' Sending data to server:', finalData);
+  onEdit(product: any): void {
+    this.isAddingNew = true;
+    this.editingProductId = product._id;
+    this.editingProduct = product;
 
-  const request = this.editingProductId
-    ? this.productService.updateProduct(this.editingProductId, finalData)
-    : this.productService.addProduct(finalData);
+    this.productForm.patchValue({
+      name: product.name,
+      shortDescription: product.shortDescription,
+      description: product.description,
+      sku: product.sku,
+      brand: product.brand || '',
+      category: product.category?._id,
+      quantity: product.inventory?.quantity ?? 0,
+      price: product.pricing?.price ?? 0,
+      comparePrice: product.pricing?.comparePrice ?? 0,
+      status: product.status,
+      isFeatured: product.isFeatured,
+      variants: this.stringifyVariants(product.variants || [])
+    });
 
-  request.subscribe({
-    next: () => {
-      console.log(' Product saved successfully!');
-      this.cancelAdd();
-      this.loadProducts();
-    },
-    error: (err) => {
-      console.error(' Error saving product:', err);
+    this.images.clear();
+    (product.images || []).forEach((img: any) => {
+      this.images.push(this.createImageGroup(img.url, img.publicId));
+    });
+
+
+    this.specifications.clear();
+    if (product.specifications) {
+      Object.entries(product.specifications).forEach(([key, value]) => {
+        if (key && key !== '_id') {
+            this.specifications.push(this.createSpecificationGroup(key, value as string));
+        }
+      });
     }
-  });
-}
+
+    this.previewUrl = product.images?.[0]?.url || null;
+  }
 
   parseVariants(input: string): any[] {
     if (!input || !input.includes(':')) return [];
@@ -257,124 +245,81 @@ onSubmit(): void {
   }
 
   stringifyVariants(variants: any[]): string {
-    if (variants.length === 0) return '';
+    if (!variants || variants.length === 0) return '';
     return `${variants[0].name}: ${variants[0].options.join(',')}`;
   }
 
-
-onEdit(product: any): void {
-  this.isAddingNew = true;
-  this.editingProductId = product._id;
-  this.editingProduct = product;
-
-  this.productForm.patchValue({
-    name: product.name,
-    shortDescription: product.shortDescription,
-    description: product.description,
-    brand: product.brand || '',
-    category: product.category,
-    isFeatured: product.isFeatured,
-
-    sku: product.sku,
-
-    quantity: product.inventory?.quantity,
-    price: product.pricing?.price,
-    comparePrice: product.pricing?.comparePrice,
-    status: product.status,
-    specifications: {
-      processor: product.specifications?.processor || '',
-      graphics: product.specifications?.graphics || '',
-      weight: product.specifications?.weight || ''
-    },
-    imageUrl: product.images?.[0]?.url || '',
-    imagePublicId: product.images?.[0]?.publicId || '',
-    variants: this.stringifyVariants(product.variants || [])
-  });
-
-  this.previewUrl = product.images?.[0]?.url || null;
-}
-
   onDelete(productId: string): void {
-    const confirmed = confirm('Are you sure you want to delete this product?');
-    if (confirmed) {
-      this.productService.deleteProduct(productId).subscribe({
-        next: () => this.loadProducts(),
-        error: (err) => console.error(' Error deleting product:', err)
-      });
+    if (confirm('Are you sure you want to delete this product?')) {
+      this.productService.deleteProduct(productId).subscribe(() => this.loadProducts());
     }
   }
 
-    cancelAdd(): void {
+  cancelAdd(): void {
     this.isAddingNew = false;
     this.productForm.reset();
     this.previewUrl = null;
     this.editingProductId = null;
     this.editingProduct = null;
+    this.images.clear();
+    this.specifications.clear();
   }
 
   getProductImage(product: any): string {
-    return product.images?.[0]?.url || 'https://via.placeholder.com/50';
+    const url = product.images?.[0]?.url;
+    if (!url) {
+      return 'https://via.placeholder.com/50';
+    }
+    if (!url.startsWith('http') && !url.startsWith('data:')) {
+      return `data:image/jpeg;base64,${url}`;
+    }
+    return url;
   }
 
   getCategoryName(catId: any): string {
-  if (!catId) {
-    return 'Uncategorized';
+    const id = typeof catId === 'string' ? catId : catId?._id;
+    const category = this.categories.find(c => c._id?.toString() === id?.toString());
+    return category ? category.name : 'Uncategorized';
   }
-
-  const id = typeof catId === 'string' ? catId : catId._id;
-
-  if (!this.categories || this.categories.length === 0) {
-    return 'Loading...';
-  }
-
-  const category = this.categories.find(c => c._id?.toString() === id?.toString());
-  return category ? category.name : 'Unknown category';
-}
-
-
-
 
   setupFiltering(): void {
-  combineLatest([
-    this.searchControl.valueChanges.pipe(startWith('')),
-    this.categoryControl.valueChanges.pipe(startWith('all')),
-    this.statusControl.valueChanges.pipe(startWith('all'))
-  ]).subscribe(([searchTerm, categoryId, status]) => {
-
-
-    const safeSearchTerm = searchTerm || '';
-    const safeCategoryId = categoryId || 'all';
-    const safeStatus = status || 'all';
-
-    this.applyFilters(safeSearchTerm, safeCategoryId, safeStatus);
-  });
-}
-
-
-    applyFilters(searchTerm: string, categoryId: string, status: string): void {
-    let tempProducts = this.products;
-
-    if (searchTerm) {
-      tempProducts = tempProducts.filter(product =>
-        product.name.toLowerCase().startsWith(searchTerm.toLowerCase())
-      );
-    }
-
-    if (categoryId && categoryId !== 'all') {
-      tempProducts = tempProducts.filter(product => product.category === categoryId);
-    }
-
-    if (status && status !== 'all') {
-      tempProducts = tempProducts.filter(product => product.status === status);
-    }
-
-    this.filteredProducts = tempProducts;
+    combineLatest([
+      this.searchControl.valueChanges.pipe(startWith('')),
+      this.categoryControl.valueChanges.pipe(startWith('all')),
+      this.statusControl.valueChanges.pipe(startWith('all'))
+    ]).subscribe(([searchTerm, categoryId, status]) => {
+      this.applyFilters(searchTerm || '', categoryId || 'all', status || 'all');
+    });
   }
 
+  applyFilters(searchTerm: string, categoryId: string, status: string): void {
+    let temp = this.products;
+    if (searchTerm) {
+      temp = temp.filter(p => p.name.toLowerCase().startsWith(searchTerm.toLowerCase()));
+    }
+    if (categoryId !== 'all') {
+      temp = temp.filter(p => p.category?._id === categoryId);
+    }
+    if (status !== 'all') {
+      temp = temp.filter(p => p.status === status);
+    }
+    this.filteredProducts = temp;
+  }
 
-    toggleDisplayMode(): void {
+  toggleDisplayMode(): void {
     this.displayMode = this.displayMode === 'list' ? 'grid' : 'list';
   }
 
+  calculateCategoryCounts(): void {
+  this.categoryProductCounts.clear();
+  this.products.forEach(product => {
+    const categoryId = product.category?._id;
+    const quantity = product.inventory?.quantity ?? 0;
 
+    if (categoryId) {
+      const currentCount = this.categoryProductCounts.get(categoryId) || 0;
+      this.categoryProductCounts.set(categoryId, currentCount + quantity);
+    }
+  });
+}
 }

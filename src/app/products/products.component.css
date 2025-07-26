@@ -234,12 +234,18 @@ mat-icon {
   background-color: #8b9197;
   color: white;
   padding: 12px;
+  text-align: center;
+}
+
+.custom-table th:first-child,
+.custom-table td:first-child {
   text-align: left;
 }
 
 .custom-table td {
   padding: 12px;
   border-bottom: 1px solid #ddd;
+  text-align: center;
 }
 
 
@@ -348,6 +354,11 @@ mat-checkbox {
   margin-bottom: 24px;
   cursor: pointer;
   text-align: center;
+}
+
+
+.add-image {
+  margin-bottom: 10px;
 }
 
 .preview-img {
@@ -641,5 +652,16 @@ mat-checkbox {
     overflow-x: hidden;
   }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 

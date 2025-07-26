@@ -104,22 +104,6 @@
               </mat-form-field>
             </div>
             <div class="filter-group">
-              <mat-form-field appearance="outline" class="custom-select-field">
-                <mat-label>View As</mat-label>
-                <mat-select [(ngModel)]="displayMode" disableRipple panelClass="custom-view-as-panel">
-                  <mat-option value="list">
-                    <mat-icon>view_list</mat-icon>
-                    List View
-                  </mat-option>
-                  <mat-option value="grid">
-                    <mat-icon>grid_view</mat-icon>
-                    Grid View
-                  </mat-option>
-                </mat-select>
-                <mat-icon matSuffix>format_list_bulleted</mat-icon>
-              </mat-form-field>
-            </div>
-            <div class="filter-group">
               <mat-form-field appearance="outline">
                 <mat-label>Status</mat-label>
                 <mat-select [formControl]="statusControl">
@@ -127,6 +111,15 @@
                   <mat-option *ngFor="let status of statuses" [value]="status">
                     {{ status | titlecase }}
                   </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="filter-group">
+              <mat-form-field appearance="outline" class="custom-select-field">
+                <mat-label>View As</mat-label>
+                <mat-select [(ngModel)]="displayMode" disableRipple panelClass="custom-view-as-panel">
+                  <mat-option value="list"><mat-icon>view_list</mat-icon> List View</mat-option>
+                  <mat-option value="grid"><mat-icon>grid_view</mat-icon> Grid View</mat-option>
                 </mat-select>
               </mat-form-field>
             </div>
@@ -142,14 +135,14 @@
           <table class="custom-table" *ngIf="displayMode === 'list'">
             <thead>
               <tr>
-                <th><mat-checkbox></mat-checkbox> Product</th>
+                <th class="h-prod"><mat-checkbox></mat-checkbox> Product</th>
                 <th>Photo</th>
                 <th>Category</th>
+                <th>Total Stock</th>
                 <th>Brand</th>
                 <th>SKU</th>
                 <th>Status</th>
                 <th>Quantity</th>
-                <th>Visibility</th>
                 <th>Price</th>
                 <th class="h-action">Action</th>
               </tr>
@@ -159,13 +152,18 @@
                 <td><mat-checkbox></mat-checkbox> {{ product.name }}</td>
                 <td><img [src]="getProductImage(product)" alt="Product" width="50" /></td>
                 <td>{{ product.categoryName }}</td>
+                    <td>
+                      <span *ngIf="product.category?._id">
+                        {{ categoryProductCounts.get(product.category._id) || 0 }}
+                      </span>
+                      <span *ngIf="!product.category?._id">-</span>
+                    </td>
                 <td>{{ product.brand || '-' }}</td>
                 <td>{{ product.sku }}</td>
                 <td>{{ product.status }}</td>
                 <td>{{ product.inventory?.quantity }}</td>
-                <td>{{ product.visibility }}</td>
                 <td>${{ product.pricing?.price }}</td>
-                <td class="h-action">
+                <td>
                   <button mat-icon-button color="primary" (click)="onEdit(product)">
                     <mat-icon>edit</mat-icon>
                   </button>
@@ -203,34 +201,43 @@
       <div *ngIf="isAddingNew" class="add-new-wrapper">
         <mat-card class="add-new-card">
           <div class="card-header">
-            <h2>Add New Product</h2>
+            <h2>{{ editingProductId ? 'Edit Product' : 'Add New Product' }}</h2>
             <button mat-icon-button (click)="cancelAdd()">
               <mat-icon>close</mat-icon>
             </button>
           </div>
 
-          <!-- Product Form -->
           <form class="add-product-form" [formGroup]="productForm" (ngSubmit)="onSubmit()">
-            <div class="image-upload">
-              <mat-form-field appearance="outline" class="form-field full-width">
-                <mat-label>Image URL</mat-label>
-                <input matInput placeholder="https://example.com/image.jpg" formControlName="imageUrl"
-                  (input)="updatePreview()" />
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="form-field full-width">
-                <mat-label>Public ID</mat-label>
-                <input matInput placeholder="public_id_example" formControlName="imagePublicId" />
-              </mat-form-field>
-              <div class="image-preview-wrapper" *ngIf="previewUrl">
-                <img [src]="previewUrl" alt="Product" class="preview-img" />
-                <button class="remove-btn" type="button" (click)="removeImage()">
-                  <mat-icon>close</mat-icon>
-                </button>
+
+            <!-- Image Section -->
+            <div class="images-section">
+              <h4>Product Images</h4>
+              <div formArrayName="images">
+                <div *ngFor="let image of images.controls; let i = index" [formGroupName]="i" class="image-input-group">
+                  <p class="mat-body-strong">Image {{ i + 1 }}</p>
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Image URL</mat-label>
+                      <input matInput formControlName="url" placeholder="https://..." required>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Image Public ID</mat-label>
+                      <input matInput formControlName="publicId" placeholder="folder/image_id" required>
+                    </mat-form-field>
+                    <button mat-icon-button color="warn" type="button" (click)="removeImageField(i)"
+                      aria-label="Remove image fields">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div *ngIf="!previewUrl" class="placeholder">
-                Enter image URL to preview
-              </div>
+              <button class="add-image" mat-stroked-button type="button" (click)="addImageField()">
+                <mat-icon>add</mat-icon>
+                Add Image
+              </button>
             </div>
+
+            <!-- General product information -->
             <div class="form-row">
               <mat-form-field appearance="outline" class="form-field" hideRequiredMarker>
                 <mat-label>Product Name</mat-label>
@@ -255,6 +262,8 @@
                 <input matInput placeholder="Enter brand" formControlName="brand">
               </mat-form-field>
             </div>
+
+            <!-- Pricing and inventory -->
             <div class="form-row">
               <mat-form-field appearance="outline" class="form-field">
                 <mat-label>Price</mat-label>
@@ -279,6 +288,8 @@
               </mat-form-field>
               <mat-checkbox formControlName="isFeatured">Is Featured</mat-checkbox>
             </div>
+
+            <!-- Descriptions -->
             <mat-form-field appearance="outline" class="form-field full-width">
               <mat-label>Short Description</mat-label>
               <textarea matInput rows="2" placeholder="Short description" formControlName="shortDescription"></textarea>
@@ -287,26 +298,33 @@
               <mat-label>Description</mat-label>
               <textarea matInput rows="4" placeholder="Full description" formControlName="description"></textarea>
             </mat-form-field>
-            <div formGroupName="specifications" class="form-row">
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Processor</mat-label>
-                <input matInput placeholder="Intel Core i9" formControlName="processor">
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Graphics</mat-label>
-                <input matInput placeholder="NVIDIA RTX 4080" formControlName="graphics">
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Weight</mat-label>
-                <input matInput placeholder="2.8kg" formControlName="weight">
-              </mat-form-field>
+
+            <div class="specifications-section">
+              <h4>Product Specifications</h4>
+              <div formArrayName="specifications">
+                <div *ngFor="let spec of specifications.controls; let i = index" [formGroupName]="i"
+                  class="form-row spec-input-group">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Key</mat-label>
+                    <input matInput formControlName="key" placeholder="e.g., Color">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Value</mat-label>
+                    <input matInput formControlName="value" placeholder="e.g., Midnight Black">
+                  </mat-form-field>
+                  <button mat-icon-button color="warn" type="button" (click)="removeSpecificationField(i)"
+                    aria-label="Remove specification">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                </div>
+              </div>
+              <button mat-stroked-button type="button" (click)="addSpecificationField()">
+                <mat-icon>add</mat-icon>
+                Add Specification
+              </button>
             </div>
-            <div class="form-row">
-              <mat-form-field appearance="outline" class="form-field full-width">
-                <mat-label>Variants (e.g. RAM: 16GB,32GB)</mat-label>
-                <input matInput placeholder="RAM: 16GB,32GB" formControlName="variants">
-              </mat-form-field>
-            </div>
+
+            <!-- Form submission actions -->
             <div class="form-actions">
               <button mat-flat-button color="primary" type="submit">Save Product</button>
               <button mat-stroked-button type="button" (click)="cancelAdd()">Cancel</button>
