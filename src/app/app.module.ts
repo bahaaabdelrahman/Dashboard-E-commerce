@@ -27,6 +27,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { LoginComponent } from './pages/login/login.component';
 import { AuthInterceptor } from './auth.interceptor';
 import { CategoryComponent } from './category/category.component';
+import { ReviewComponent } from './review/review.component';
 
 
 
@@ -43,7 +44,8 @@ import { CategoryComponent } from './category/category.component';
     OrdersComponent,
     ProductsComponent,
     LoginComponent,
-    CategoryComponent
+    CategoryComponent,
+    ReviewComponent
   ],
   imports: [
     BrowserModule,

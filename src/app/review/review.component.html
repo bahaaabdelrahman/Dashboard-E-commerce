@@ -1,11 +1,12 @@
+<!-- Main Sidenav Container -->
 <mat-sidenav-container class="dashboard-container">
-  <!-- Sidebar -->
+
+  <!-- Sidebar Navigation -->
   <mat-sidenav class="sidenav" mode="side" opened>
     <div class="sidebar-header">
       <h2>DODOLAN</h2>
       <p>E-Commerce</p>
     </div>
-
     <mat-nav-list>
       <mat-list-item routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <mat-icon>dashboard</mat-icon>
@@ -30,25 +31,23 @@
     </mat-nav-list>
   </mat-sidenav>
 
-  <!-- Main content -->
+  <!-- Main Content Area -->
   <mat-sidenav-content class="main-content">
+
+    <!-- Top Toolbar -->
     <mat-toolbar color="primary" class="toolbar">
       <div class="left-section">
-        <span class="title">Orders Data</span>
+        <span class="title">Review</span>
         <mat-form-field appearance="outline" class="search-field">
           <mat-label>Search for something</mat-label>
           <input matInput>
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
       </div>
-
       <div class="right-section">
-
         <span class="divider"></span>
-
         <mat-icon>settings</mat-icon>
         <mat-icon>notifications</mat-icon>
-
         <div class="admin" [matMenuTriggerFor]="adminMenu">
           <img src="https://i.pravatar.cc/40" alt="Admin">
           <div class="admin-info">
@@ -57,8 +56,6 @@
           </div>
           <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
         </div>
-
-        <!-- Admin Menu -->
         <mat-menu #adminMenu="matMenu" class="admin-menu">
           <div class="user-info">
             <img src="https://i.pravatar.cc/40" alt="User">
@@ -77,57 +74,52 @@
       </div>
     </mat-toolbar>
 
-    <!-- Main body -->
+    <!-- Main Content Body -->
     <div class="main-body">
+
+      <!-- Page Header -->
       <div class="today-date">
         <h2>{{ currentDate }}</h2>
-      </div>
+        <p>Review</p>
 
-      <div class="stat-cards">
-        <mat-card class="stat-card" *ngFor="let card of statCards">
-          <div class="card-header">
-            <mat-icon class="left-icon">{{ card.icon }}</mat-icon>
-            <mat-icon class="menu-icon">more_vert</mat-icon>
-          </div>
-          <div class="card-body">
-            <div class="card-title">{{ card.title }}</div>
-            <div class="card-amount">{{ card.value }}</div>
-            <div class="card-change">
-            </div>
-          </div>
-        </mat-card>
-      </div>
-      <mat-card class="full-width-card">
-        <div class="card-header-flex space-between">
-          <h3 class="card-header-title">Orders Table</h3>
-          <button mat-icon-button><mat-icon>more_vert</mat-icon></button>
+        <!-- Loading/Error States -->
+        <div *ngIf="loading">Loading reviews...</div>
+        <div *ngIf="error" class="error">{{ error }}</div>
+
+        <!-- Empty State -->
+        <div *ngIf="!loading && reviews.length === 0">
+          No reviews found.
         </div>
 
-        <table class="custom-table">
-          <thead>
-            <tr>
-              <th class="th-order">Order ID</th>
-              <th>Customer</th>
-              <th>Product</th>
-              <th>Date</th>
-              <th class="th-status">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let order of orders">
-              <td>{{ order._id }}</td>
-              <td>{{ order.user?.name || 'N/A' }}</td>
-              <td>{{ getProductNames(order) }}</td>
-              <td>{{ order.createdAt | date: 'yyyy-MM-dd' }}</td>
-              <td>{{ order.status }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </mat-card>
+        <!-- Reviews Grid -->
+        <div *ngIf="reviews.length > 0" class="reviews-grid">
+          <mat-card *ngFor="let review of reviews" class="review-card">
+            <mat-card-header>
+              <div mat-card-avatar>
+                <mat-icon>person</mat-icon>
+              </div>
+              <mat-card-title>{{ review.user?.name || 'Anonymous' }}</mat-card-title>
+              <mat-card-subtitle>{{ review.createdAt | date: 'medium' }}</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              <p><strong>Product:</strong> {{ review.product?.title }}</p>
+              <p><strong>Rating:</strong> {{ review.rating }}</p>
+              <p><strong>Comment:</strong> {{ review.comment }}</p>
+              <p><strong>Status:</strong> {{ review.status }}</p>
+            </mat-card-content>
+
+            <mat-card-actions>
+              <button mat-button color="primary" (click)="updateStatus(review._id, 'approved')">Approve</button>
+              <button mat-button color="warn" (click)="updateStatus(review._id, 'rejected')">Reject</button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
 
 
-
+      </div>
     </div>
+
     <router-outlet></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>

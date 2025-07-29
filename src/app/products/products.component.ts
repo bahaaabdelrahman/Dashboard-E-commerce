@@ -59,6 +59,7 @@ export class ProductsComponent implements OnInit {
       quantity: [0, Validators.required],
       isFeatured: [true],
       status: ['active', Validators.required],
+      trackQuantity: [true],
       variants: [''],
       images: this.fb.array([]),
       specifications: this.fb.array([])
@@ -109,7 +110,7 @@ export class ProductsComponent implements OnInit {
     this.isAddingNew = true;
     this.editingProductId = null;
     this.editingProduct = null;
-    this.productForm.reset({ status: 'draft', isFeatured: false, price: 0, comparePrice: 0, quantity: 0 });
+    this.productForm.reset({ status: 'active', isFeatured: true, trackQuantity: true, price: 0, comparePrice: 0, quantity: 0 });
     this.previewUrl = null;
     this.images.clear();
     this.specifications.clear();
@@ -172,7 +173,8 @@ export class ProductsComponent implements OnInit {
         comparePrice: formData.comparePrice
       },
       inventory: {
-        quantity: formData.quantity
+        quantity: formData.quantity,
+        trackQuantity: formData.trackQuantity
       },
       specifications: specificationsObject,
       images: formData.images,
@@ -215,6 +217,7 @@ export class ProductsComponent implements OnInit {
       price: product.pricing?.price ?? 0,
       comparePrice: product.pricing?.comparePrice ?? 0,
       status: product.status,
+      trackQuantity: product.inventory?.trackQuantity ?? true,
       isFeatured: product.isFeatured,
       variants: this.stringifyVariants(product.variants || [])
     });

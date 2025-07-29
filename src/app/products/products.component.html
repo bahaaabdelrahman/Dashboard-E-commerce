@@ -21,8 +21,12 @@
         <span class="menu-label">Products</span>
       </mat-list-item>
       <mat-list-item routerLink="/category" routerLinkActive="active">
-        <mat-icon>inventory_2</mat-icon>
+        <mat-icon fontIcon="category"></mat-icon>
         <span class="menu-label">Category</span>
+      </mat-list-item>
+      <mat-list-item routerLink="/review" routerLinkActive="active">
+        <mat-icon>hotel_class</mat-icon>
+        <span class="menu-label">Review</span>
       </mat-list-item>
     </mat-nav-list>
   </mat-sidenav>
@@ -286,6 +290,7 @@
                   <mat-option value="draft">Draft</mat-option>
                 </mat-select>
               </mat-form-field>
+              <mat-checkbox formControlName="trackQuantity">Track Quantity</mat-checkbox>
               <mat-checkbox formControlName="isFeatured">Is Featured</mat-checkbox>
             </div>
 

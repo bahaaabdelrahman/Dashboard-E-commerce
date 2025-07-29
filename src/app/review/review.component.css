@@ -207,100 +207,24 @@ mat-icon {
   color: #777;
 }
 
-/* Cards  */
 
-.stat-cards {
+.reviews-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 16px;
   margin-top: 24px;
 }
 
-.stat-card {
-  padding: 16px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  background-color: white;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.left-icon {
-  font-size: 32px;
-  color: #4CAF50;
-}
-
-.menu-icon {
-  cursor: pointer;
-  color: #999;
-}
-
-.card-title {
-  margin-top: 12px;
-  font-weight: 600;
-  color: #666;
-}
-
-.card-amount {
-  font-size: 28px;
-  font-weight: bold;
-  margin: 8px 0;
-}
-
-.card-change {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #888;
+.review-card {
+  background: #fff;
 }
 
 
-/* ############################### */
 
-.full-width-card {
-  width: 100%;
-  margin-top: 24px;
-  padding: 16px;
-  box-sizing: border-box;
-}
 
-.card-header-flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
 
-.custom-table {
-  width: 100%;
-  border-collapse: collapse;
-}
 
-.custom-table th {
-  background-color: #8b9197;
-  color: white;
-  padding: 12px;
-  text-align: left;
-}
 
-.th-order {
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
-}
-
-.th-status {
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-}
-
-.custom-table td {
-  padding: 12px;
-  border-bottom: 1px solid #ddd;
-}
 
 
 /* ************************************ */
