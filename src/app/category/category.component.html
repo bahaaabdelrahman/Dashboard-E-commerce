@@ -156,8 +156,8 @@
                     </button>
                     <input hidden (change)="onFileSelected($event, category._id)" #imageInput type="file"
                       accept="image/*">
-                    <button mat-icon-button color="warn" *ngIf="category.image" (click)="onDeleteImage(category._id)"
-                      matTooltip="Delete Image">
+                    <button mat-icon-button color="warn" *ngIf="category.image?.url"
+                      (click)="onDeleteImage(category._id)" matTooltip="Delete Image">
                       <mat-icon>delete_forever</mat-icon>
                     </button>
                   </div>
@@ -188,7 +188,10 @@
             </button>
           </div>
 
+          <!-- ==================== FORM START ==================== -->
           <form class="add-product-form" [formGroup]="categoryForm" (ngSubmit)="onSubmit()">
+
+            <!-- Category Name & Slug -->
             <div class="form-row">
               <mat-form-field appearance="outline" class="form-field" hideRequiredMarker>
                 <mat-label>Category Name</mat-label>
@@ -200,6 +203,7 @@
               </mat-form-field>
             </div>
 
+            <!-- Description -->
             <div class="form-row">
               <mat-form-field appearance="outline" class="form-field full-width">
                 <mat-label>Description</mat-label>
@@ -207,11 +211,13 @@
               </mat-form-field>
             </div>
 
+            <!-- Parent Category -->
             <div class="form-row">
               <mat-form-field appearance="outline" class="form-field" hideRequiredMarker>
                 <mat-label>Parent Category</mat-label>
-                <mat-select formControlName="parentId">
-                  <mat-option [value]="null">None</mat-option>
+                <!-- ✅ تم التعديل هنا -->
+                <mat-select formControlName="parentCategory">
+                  <mat-option [value]="null">None (Root Category)</mat-option>
                   <mat-option *ngFor="let cat of categories" [value]="cat._id">
                     {{ cat.name }}
                   </mat-option>
@@ -219,37 +225,45 @@
               </mat-form-field>
             </div>
 
-            <div class="image-upload">
-              <mat-form-field appearance="outline" class="form-field full-width">
-                <mat-label>Image URL</mat-label>
-                <input matInput placeholder="https://example.com/image.jpg" formControlName="imageUrl"
-                  (input)="updatePreview()" />
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="form-field full-width">
-                <mat-label>Public ID</mat-label>
-                <input matInput placeholder="public_id_example" formControlName="imagePublicId" />
-              </mat-form-field>
-              <div class="image-preview-wrapper" *ngIf="previewUrl">
-                <img [src]="previewUrl" alt="Product" class="preview-img" />
-                <button class="remove-btn" type="button" (click)="removeImage()">
-                  <mat-icon>close</mat-icon>
-                </button>
-              </div>
-              <div *ngIf="!previewUrl" class="placeholder">
-                Enter image URL to preview
+            <!-- Image Section -->
+            <!-- ✅ تم التعديل هنا -->
+            <div formGroupName="image">
+              <div class="image-upload">
+                <mat-form-field appearance="outline" class="form-field full-width">
+                  <mat-label>Image URL</mat-label>
+                  <input matInput placeholder="https://example.com/image.jpg" formControlName="url"
+                    (input)="updatePreview()" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="form-field full-width">
+                  <mat-label>Public ID</mat-label>
+                  <input matInput placeholder="public_id_example" formControlName="publicId" />
+                </mat-form-field>
+                <div class="image-preview-wrapper" *ngIf="previewUrl">
+                  <img [src]="previewUrl" alt="Category Preview" class="preview-img" />
+                  <button class="remove-btn" type="button" (click)="removeImage()">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+                <div *ngIf="!previewUrl" class="placeholder">
+                  Enter image URL to preview
+                </div>
               </div>
             </div>
 
+            <!-- Is Active Checkbox -->
             <div class="form-row">
               <mat-checkbox formControlName="isActive">Is Active</mat-checkbox>
             </div>
 
+            <!-- Form Actions -->
             <div class="form-actions">
               <button mat-flat-button color="primary" type="submit" [disabled]="categoryForm.invalid">Save
                 Category</button>
               <button mat-stroked-button type="button" (click)="cancelAdd()">Cancel</button>
             </div>
+
           </form>
+          <!-- ===================== FORM END ===================== -->
         </mat-card>
       </div>
     </div>

@@ -15,14 +15,11 @@ export class CategoryComponent implements OnInit {
   currentDate: string = '';
   categories: any[] = [];
   editingCategoryId: string | null = null;
-  editingCategory: any | null = null;
   previewUrl: string | null = null;
   filteredCategories: any[] = [];
   searchControl = new FormControl('');
   statusControl = new FormControl('all');
   statuses: string[] = ['active', 'inactive'];
-
-  // --- NEW Properties for new features ---
   selectedCategoryIds = new Set<string>();
 
   constructor(private fb: FormBuilder, private categoryService: CategoryService) {}
@@ -48,9 +45,11 @@ export class CategoryComponent implements OnInit {
       name: ['', Validators.required],
       slug: ['', Validators.required],
       description: [''],
-      parentId: [null],
-      imageUrl: ['', Validators.required],
-      imagePublicId: [''],
+      parentCategory: [null],
+      image: this.fb.group({
+        url: [''],
+        publicId: ['']
+      }),
       isActive: [true]
     });
   }
@@ -58,24 +57,20 @@ export class CategoryComponent implements OnInit {
   onAddNew(): void {
     this.isAddingNew = true;
     this.editingCategoryId = null;
-    this.editingCategory = null;
     this.categoryForm.reset({
       isActive: true,
-      parentId: null,
-      imageUrl: '',
-      imagePublicId: ''
+      parentCategory: null,
+      image: { url: '', publicId: '' }
     });
     this.previewUrl = null;
   }
 
   loadInitialData(): void {
     this.categoryService.getCategories().subscribe({
-      next: (response) => {
-        if (response && Array.isArray(response.data)) {
-          this.categories = response.data;
-          this.filteredCategories = this.categories;
-        } else if (Array.isArray(response)) {
-          this.categories = response;
+      next: (response: any) => {
+        const data = response.data || response;
+        if (Array.isArray(data)) {
+          this.categories = data;
           this.filteredCategories = this.categories;
         } else {
           this.categories = [];
@@ -90,22 +85,17 @@ export class CategoryComponent implements OnInit {
     });
   }
 
+
   onSubmit(): void {
     if (this.categoryForm.invalid) {
       this.categoryForm.markAllAsTouched();
       return;
     }
 
-    const categoryData = {
-      ...this.categoryForm.value,
-      image: this.categoryForm.value.imageUrl
-    };
 
-    delete categoryData.imageUrl;
-    delete categoryData.imagePublicId;
-
-    if (!categoryData.parentId) {
-      delete categoryData.parentId;
+    const categoryData = { ...this.categoryForm.value };
+    if (!categoryData.parentCategory) {
+      categoryData.parentCategory = null;
     }
 
     const request = this.editingCategoryId
@@ -124,18 +114,20 @@ export class CategoryComponent implements OnInit {
     });
   }
 
+
   onEdit(category: any): void {
     this.isAddingNew = true;
     this.editingCategoryId = category._id;
-    this.editingCategory = category;
 
     this.categoryForm.patchValue({
       name: category.name,
       slug: category.slug,
       description: category.description,
-      parentId: category.parentId,
-      imageUrl: category.image,
-      imagePublicId: category.imagePublicId || '',
+      parentCategory: category.parentCategory,
+      image: {
+        url: category.image?.url || '',
+        publicId: category.image?.publicId || ''
+      },
       isActive: category.isActive
     });
 
@@ -143,7 +135,7 @@ export class CategoryComponent implements OnInit {
   }
 
   onDelete(categoryId: string): void {
-    const confirmed = confirm('Are you sure you want to delete this product?');
+    const confirmed = confirm('Are you sure you want to delete this category?');
     if (confirmed) {
       this.categoryService.deleteCategory(categoryId).subscribe({
         next: () => this.loadInitialData(),
@@ -154,14 +146,17 @@ export class CategoryComponent implements OnInit {
 
   cancelAdd(): void {
     this.isAddingNew = false;
-    this.categoryForm.reset();
     this.editingCategoryId = null;
-    this.editingCategory = null;
+    this.categoryForm.reset({
+      isActive: true,
+      parentCategory: null,
+      image: { url: '', publicId: '' }
+    });
     this.previewUrl = null;
   }
 
   getCategoryImage(category: any): string {
-    return category.image || 'https://via.placeholder.com/50';
+    return category.image?.url || 'https://via.placeholder.com/50';
   }
 
   setupFiltering(): void {
@@ -178,7 +173,7 @@ export class CategoryComponent implements OnInit {
 
     if (searchTerm) {
       tempCategories = tempCategories.filter(category =>
-        category.name.toLowerCase().startsWith(searchTerm.toLowerCase())
+        category.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -191,8 +186,8 @@ export class CategoryComponent implements OnInit {
   }
 
   updatePreview(): void {
-    const url = this.categoryForm.get('imageUrl')?.value;
-    if (this.categoryForm.get('imageUrl')?.valid) {
+    const url = this.categoryForm.get('image.url')?.value;
+    if (this.categoryForm.get('image.url')?.valid && url) {
       this.previewUrl = url;
     } else {
       this.previewUrl = null;
@@ -200,11 +195,9 @@ export class CategoryComponent implements OnInit {
   }
 
   removeImage(): void {
-    this.categoryForm.get('imageUrl')?.setValue('');
-    this.categoryForm.get('imagePublicId')?.setValue('');
+    this.categoryForm.get('image')?.setValue({ url: '', publicId: '' });
     this.previewUrl = null;
   }
-
 
   onCheckboxChange(event: any, id: string): void {
     if (event.checked) {
@@ -215,7 +208,8 @@ export class CategoryComponent implements OnInit {
   }
 
   isAllSelected(): boolean {
-    return this.filteredCategories.length > 0 && this.selectedCategoryIds.size === this.filteredCategories.length;
+    if (this.filteredCategories.length === 0) return false;
+    return this.selectedCategoryIds.size === this.filteredCategories.length;
   }
 
   selectionHasValue(): boolean {
