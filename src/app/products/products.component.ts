@@ -53,13 +53,17 @@ export class ProductsComponent implements OnInit {
       description: ['', Validators.required],
       sku: ['', Validators.required],
       brand: [''],
+      pricing: this.fb.group({
       price: [0, [Validators.required, Validators.min(0)]],
-      comparePrice: [0, Validators.min(0)],
-      category: ['', Validators.required],
+      comparePrice: [0, Validators.min(0)]
+      }),
+      inventory: this.fb.group({
       quantity: [0, Validators.required],
+      trackQuantity: [true]
+      }),
+      category: ['', Validators.required],
       isFeatured: [true],
       status: ['active', Validators.required],
-      trackQuantity: [true],
       variants: [''],
       images: this.fb.array([]),
       specifications: this.fb.array([])
@@ -110,7 +114,18 @@ export class ProductsComponent implements OnInit {
     this.isAddingNew = true;
     this.editingProductId = null;
     this.editingProduct = null;
-    this.productForm.reset({ status: 'active', isFeatured: true, trackQuantity: true, price: 0, comparePrice: 0, quantity: 0 });
+      this.productForm.reset({
+    status: 'active',
+    isFeatured: true,
+    pricing: {
+      price: 0,
+      comparePrice: 0
+    },
+    inventory: {
+      quantity: 0,
+      trackQuantity: true
+    }
+  });
     this.previewUrl = null;
     this.images.clear();
     this.specifications.clear();
@@ -140,105 +155,93 @@ export class ProductsComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.productForm.invalid) {
-      alert('Please fill all required fields, including Image URLs and Public IDs.');
-      return;
-    }
-
-    const formData = this.productForm.value;
-
-    if (formData.comparePrice !== 0 && formData.comparePrice <= formData.price) {
-      alert('Compare price must be greater than price.');
-      return;
-    }
-
-    const specificationsObject = formData.specifications.reduce((acc: any, spec: any) => {
-      if (spec.key) {
-        acc[spec.key] = spec.value;
-      }
-      return acc;
-    }, {});
-
-    const baseProduct = {
-      name: formData.name,
-      shortDescription: formData.shortDescription,
-      description: formData.description,
-      sku: formData.sku,
-      brand: formData.brand || '',
-      category: formData.category,
-      status: formData.status,
-      isFeatured: formData.isFeatured,
-      pricing: {
-        price: formData.price,
-        comparePrice: formData.comparePrice
-      },
-      inventory: {
-        quantity: formData.quantity,
-        trackQuantity: formData.trackQuantity
-      },
-      specifications: specificationsObject,
-      images: formData.images,
-      variants: this.parseVariants(formData.variants)
-    };
-
-    const finalData = this.editingProductId && this.editingProduct
-      ? { ...this.editingProduct, ...baseProduct }
-      : baseProduct;
-
-    const request = this.editingProductId
-      ? this.productService.updateProduct(this.editingProductId, finalData)
-      : this.productService.addProduct(finalData);
-
-    request.subscribe({
-      next: () => {
-        this.cancelAdd();
-        this.loadProducts();
-      },
-      error: (err) => {
-        console.error('Error saving product:', err);
-        alert('An error occurred while saving the product. Please check the console for details.');
-      }
-    });
+  if (this.productForm.invalid) {
+    alert('Please fill all required fields correctly. Check for missing image URLs, names, or prices.');
+    this.productForm.markAllAsTouched();
+    return;
   }
+
+  const formData = this.productForm.value;
+
+  if (formData.pricing.comparePrice > 0 && formData.pricing.comparePrice <= formData.pricing.price) {
+    alert('Compare price must be greater than the regular price.');
+    return;
+  }
+
+  const specificationsObject = formData.specifications.reduce((acc: any, spec: { key: string, value: string }) => {
+    if (spec.key) {
+      acc[spec.key] = spec.value;
+    }
+    return acc;
+  }, {});
+
+  const productData = {
+    ...formData,
+    specifications: specificationsObject,
+    variants: this.parseVariants(formData.variants || '')
+  };
+
+  const request = this.editingProductId
+    ? this.productService.updateProduct(this.editingProductId, productData)
+    : this.productService.addProduct(productData);
+
+  request.subscribe({
+    next: (response) => {
+      console.log('Product saved successfully:', response);
+      alert('Product saved successfully!');
+      this.cancelAdd();
+      this.loadProducts();
+    },
+    error: (err) => {
+      console.error('Error saving product:', err);
+      alert(`An error occurred while saving the product: ${err.message || 'Please check the console for details.'}`);
+    }
+  });
+}
 
   onEdit(product: any): void {
-    this.isAddingNew = true;
-    this.editingProductId = product._id;
-    this.editingProduct = product;
+  this.isAddingNew = true;
+  this.editingProductId = product._id;
+  this.editingProduct = product;
 
-    this.productForm.patchValue({
-      name: product.name,
-      shortDescription: product.shortDescription,
-      description: product.description,
-      sku: product.sku,
-      brand: product.brand || '',
-      category: product.category?._id,
-      quantity: product.inventory?.quantity ?? 0,
+  this.productForm.patchValue({
+    name: product.name,
+    shortDescription: product.shortDescription,
+    description: product.description,
+    sku: product.sku,
+    brand: product.brand || '',
+    category: product.category?._id,
+    status: product.status,
+    isFeatured: product.isFeatured,
+    variants: this.stringifyVariants(product.variants || []),
+    pricing: {
       price: product.pricing?.price ?? 0,
-      comparePrice: product.pricing?.comparePrice ?? 0,
-      status: product.status,
-      trackQuantity: product.inventory?.trackQuantity ?? true,
-      isFeatured: product.isFeatured,
-      variants: this.stringifyVariants(product.variants || [])
-    });
-
-    this.images.clear();
-    (product.images || []).forEach((img: any) => {
-      this.images.push(this.createImageGroup(img.url, img.publicId));
-    });
-
-
-    this.specifications.clear();
-    if (product.specifications) {
-      Object.entries(product.specifications).forEach(([key, value]) => {
-        if (key && key !== '_id') {
-            this.specifications.push(this.createSpecificationGroup(key, value as string));
-        }
-      });
+      comparePrice: product.pricing?.comparePrice ?? 0
+    },
+    inventory: {
+      quantity: product.inventory?.quantity ?? 0,
+      trackQuantity: product.inventory?.trackQuantity ?? true
     }
+  });
 
-    this.previewUrl = product.images?.[0]?.url || null;
+  this.images.clear();
+  (product.images || []).forEach((img: { url: string, publicId: string }) => {
+    if (img.url) {
+      this.images.push(this.createImageGroup(img.url, img.publicId));
+    }
+  });
+
+  this.specifications.clear();
+  if (product.specifications && typeof product.specifications === 'object') {
+    Object.entries(product.specifications).forEach(([key, value]) => {
+      if (key && key !== '_id') {
+          this.specifications.push(this.createSpecificationGroup(key, value as string));
+      }
+    });
   }
+
+  this.previewUrl = product.images?.[0]?.url || null;
+}
 
   parseVariants(input: string): any[] {
     if (!input || !input.includes(':')) return [];
